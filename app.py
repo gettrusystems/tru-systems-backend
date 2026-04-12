@@ -55,32 +55,33 @@ def build_user_prompt(answers):
 Analyze this salesperson's workflow and generate their personalized
 automation audit report.
 
-THEIR DETAILS:
-- Sales role: {answers.get('q1', 'Not provided')}
-- CRM they use: {answers.get('q2', 'Not provided')}
-- Compensation structure: {answers.get('q3', 'Not provided')}
-- Their lead-to-close process (manual steps): {answers.get('q4', 'Not provided')}
-- Current lead response time: {answers.get('q5', 'Not provided')}
-- Biggest time drain outside of selling: {answers.get('q6', 'Not provided')}
-- What matters most to them: {answers.get('q7', 'Not provided')}
+THEIR ANSWERS:
+- CRM they use: {answers.get('q1', 'Not provided')}
+- Other tools they use daily: {answers.get('q2', 'Not provided')}
+- What they do manually when a lead comes in: {answers.get('q3', 'Not provided')}
+- How quickly they respond to new leads: {answers.get('q4', 'Not provided')}
+- Admin tasks they currently do by hand: {answers.get('q5', 'Not provided')}
+- What matters most to them right now: {answers.get('q6', 'Not provided')}
 
 Generate a JSON response with this exact structure:
 {{
-    "intro": "2-3 sentences personally addressing their situation. Reference their specific role, CRM, and pain points. Make them feel understood as a salesperson. Speak in terms of deals, pipeline, and commission.",
+    "intro": "3-4 sentences that make this person feel deeply understood. Reference their specific CRM by name, the manual tasks they described, and their response time. Acknowledge the pain of doing those things manually. Speak like a friend who's been in their shoes — warm but direct. End with something like 'Here's exactly what I'd change if I were in your seat.'",
     "opportunities": [
         {{
-            "title": "Short title for this automation opportunity",
-            "description": "3-4 sentences explaining this specific opportunity for their sales role. Reference their actual CRM and process. Be concrete about what gets automated and how.",
-            "tool": "The specific tool or combination recommended (e.g., Make.com + Salesforce, HubSpot sequences, Zapier + Slack)",
-            "impact": "One sentence on the direct outcome — framed as deals closed, commission earned, or time reclaimed for selling"
+            "title": "Clear, specific title (not generic like 'Speed-to-Lead Automation' — instead something like 'Instant Lead Response via HubSpot + Make.com')",
+            "description": "5-7 sentences that do three things: (1) Explain the specific problem in their workflow that this solves, referencing what they told us. (2) Describe exactly what the automation does in plain language — what triggers it, what it does step by step, and what the end result looks like. For example: 'When a new lead hits your CRM, a Make.com scenario fires immediately. It pulls the lead's name and company, drafts a personalized intro email using AI, sends it from your email address, logs the activity in your CRM, and notifies you on Slack — all within 60 seconds of the lead coming in.' (3) Explain why this matters in terms they care about — more deals, more commission, less busywork.",
+            "tool": "Name the specific tools and how they connect (e.g., 'Make.com connects your Salesforce to Gmail and Slack' — not just 'Make.com + CRM')",
+            "impact": "Be specific and quantified where possible — e.g., 'Could save you 5-8 hours per week of CRM updates' or 'Leads contacted in under 60 seconds instead of 30+ minutes — studies show this alone can 10x your close rate on inbound leads'"
         }}
     ],
-    "quick_win": "One specific thing they can do TODAY in under 30 minutes that will immediately improve their sales process. Be very specific — name the tool, the action, and the outcome.",
-    "closing": "2 sentences of encouragement tied to their specific goal. If they want more commission, speak to that. If they want job security, speak to that. Make it personal."
+    "quick_win": "Give them ONE thing they can literally do right now, today, in under 20 minutes that SOLVES a problem, not just reveals one. Do NOT tell them to count their problems or audit their failures — that's not a win, that's a guilt trip. Instead, give them a specific action that immediately improves their process. Examples of GOOD quick wins: 'Create a saved email template in your CRM for your intro email so you never type it from scratch again — here's exactly where to find it in [their CRM].' Or 'Set up a free Calendly link and add it to your email signature so leads can book time with you instantly instead of going back and forth.' Or 'Go to make.com, create a free account, and set up their pre-built Slack notification template so you get pinged the second a new lead hits your CRM.' The person should finish this action and immediately feel like their process is better than it was 20 minutes ago.",
+    "closing": "2-3 sentences tied to their specific goal (q6). If they said 'closing more deals', speak to that directly. If 'earning more commission', calculate a rough example like 'If automating your lead response helps you close just one extra deal per month, that's $X more in commission per year.' If 'becoming indispensable', frame it as 'You'd be the person on your team who brought the company a system that runs itself.' Make them feel the possibility."
 }}
 
-Generate exactly 3-4 opportunities. Make every recommendation specific to
-their CRM and sales process. Never be generic.
+Generate exactly 3 opportunities. Each one MUST reference their specific CRM
+and the manual tasks they described. Never use generic descriptions.
+The tone should feel like getting advice from a sharp friend who actually
+builds these automations for a living — not a consultant writing a formal report.
 """
 
 
@@ -89,7 +90,7 @@ def generate_report(answers):
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     message = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=2048,
+        max_tokens=4096,
         system=SYSTEM_PROMPT,
         messages=[
             {"role": "user", "content": build_user_prompt(answers)}
@@ -173,7 +174,9 @@ def send_report_email(email, name, report, answers):
             <a href="[COMMUNITY_PLATFORM_URL]" style="display:inline-block;
             padding:14px 32px; background:#c8102e; color:white;
             text-decoration:none; border-radius:8px; font-size:15px;
-            font-weight:600;">Join the community — $29/month</a>
+            font-weight:600;">Start your free 7-day trial</a>
+            <p style="font-size:13px; color:#6b7280; margin:10px 0 0;">
+            Then $29/mo. Cancel anytime before day 7 and pay nothing.</p>
             <p style="font-size:12px; color:#6b7280; margin:12px 0 0;">
             Or <a href="https://calendly.com/gettrusystems/30min"
             style="color:#c8102e;">book a 1-on-1 session</a> for
