@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TRU Systems — Sales Automation Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #0f172a;
+    --text-secondary: #64748b;
+    --accent: #c8102e;
+    --accent-hover: #a50d24;
+    --accent-soft: #fef2f2;
+    --border: #e2e8f0;
+    --card-hover: #f8fafc;
+    --success: #10b981;
+    --transition: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── FULL-SCREEN CONTAINER ─────────────────────── */
+  .funnel {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ───────────────────────────────────── */
+  .top-bar {
+    flex-shrink: 0;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    z-index: 10;
+  }
+  .logo-img {
+    height: 32px;
+    width: auto;
+  }
+  .progress-mini {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-dots {
+    display: flex;
+    gap: 5px;
+  }
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s var(--transition);
+  }
+  .progress-dot.active { background: var(--accent); transform: scale(1.2); }
+  .progress-dot.done { background: var(--success); }
+  .progress-pct {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .top-bar-hidden { opacity: 0; pointer-events: none; }
+
+  /* ── SCREEN (each question is a screen) ────────── */
+  .screen {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    padding: 32px 24px 40px;
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+    animation: fadeUp 0.35s var(--transition);
+    overflow-y: auto;
+  }
+  .screen.active { display: flex; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── LANDING SCREEN ────────────────────────────── */
+  .landing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    align-self: flex-start;
+  }
+  .landing-badge svg { width: 14px; height: 14px; }
+
+  .landing-h1 {
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .landing-h1 .highlight {
+    color: var(--accent);
+  }
+
+  .landing-sub {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+  }
+
+  .trust-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .trust-item svg { width: 16px; height: 16px; color: var(--success); flex-shrink: 0; }
+
+  /* ── QUESTION ELEMENTS ─────────────────────────── */
+  .q-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .q-title {
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-bottom: 28px;
+    color: var(--text);
+  }
+
+  /* ── OPTION BUTTONS ────────────────────────────── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 14px;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s var(--transition);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .opt:hover { border-color: #cbd5e1; background: var(--card-hover); }
+  .opt:active { transform: scale(0.98); }
+  .opt.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .opt-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .opt.selected .opt-icon { background: #fecaca; }
+
+  .opt-text { flex: 1; }
+  .opt-label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  .opt-desc {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── TEXTAREA & INPUT ──────────────────────────── */
+  .text-input {
+    width: 100%;
+    padding: 18px 20px;
+    background: #f8fafc;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  .text-input:focus { border-color: var(--accent); }
+  textarea.text-input { min-height: 130px; }
+  .input-helper {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+
+  /* ── MICRO-FEEDBACK ────────────────────────────── */
+  .micro-feedback {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #f0fdf4;
+    border-radius: 10px;
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #166534;
+    animation: fadeUp 0.3s var(--transition);
+  }
+  .micro-feedback.show { display: flex; }
+  .micro-feedback svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* ── BOTTOM ACTION BAR ─────────────────────────── */
+  .action-bar {
+    flex-shrink: 0;
+    padding: 16px 24px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s var(--transition);
+    border: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-main {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-main:hover { background: var(--accent-hover); }
+  .btn-main:active { transform: scale(0.97); }
+  .btn-main:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-back {
+    flex: 0 0 auto;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+  }
+  .btn-back:hover { background: #f8fafc; }
+
+  /* ── EMAIL GATE ────────────────────────────────── */
+  .email-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .email-fields label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: -8px;
+  }
+
+  /* ── LOADING SCREEN ────────────────────────────── */
+  .loading-content {
+    text-align: center;
+  }
+  .loader-ring {
+    width: 64px;
+    height: 64px;
+    border: 5px solid #f1f5f9;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 28px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .loading-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    opacity: 0;
+    animation: fadeUp 0.4s var(--transition) forwards;
+  }
+  .loading-step svg { width: 18px; height: 18px; color: var(--success); }
+  .loading-step:nth-child(1) { animation-delay: 0.5s; }
+  .loading-step:nth-child(2) { animation-delay: 1.5s; }
+  .loading-step:nth-child(3) { animation-delay: 2.5s; }
+
+  /* ── RESULTS SCREEN ────────────────────────────── */
+  .results-screen {
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding-top: 24px;
+    padding-bottom: 100px;
+  }
+
+  .score-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+  .score-high { background: #fef2f2; color: #c8102e; }
+  .score-medium { background: #fffbeb; color: #b45309; }
+  .score-low { background: #f0fdf4; color: #16a34a; }
+
+  .results-h2 {
+    font-size: clamp(24px, 5vw, 32px);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .results-intro {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .opp {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 12px;
+    transition: box-shadow 0.2s;
+  }
+  .opp:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .opp-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .opp-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .opp-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .opp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .opp-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .qw-box {
+    background: var(--accent-soft);
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .qw-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .qw-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .cta-box {
+    background: #0f172a;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-top: 24px;
+  }
+  .cta-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .cta-box p {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .cta-btn-primary {
+    display: inline-block;
+    padding: 16px 32px;
+    background: var(--accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+    width: 100%;
+    max-width: 360px;
+  }
+  .cta-btn-primary:hover { background: var(--accent-hover); }
+  .cta-btn-secondary {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 14px 28px;
+    background: transparent;
+    color: #94a3b8;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: 100%;
+    max-width: 360px;
+  }
+  .cta-btn-secondary:hover { border-color: #64748b; color: #e2e8f0; }
+  .cta-guarantee {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 12px;
+  }
+
+  /* ── SOCIAL PROOF INLINE ───────────────────────── */
+  .proof-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .proof-inline strong { color: var(--text); }
+
+  /* ── RESPONSIVE ────────────────────────────────── */
+  @media (max-width: 480px) {
+    .top-bar { padding: 12px 16px; }
+    .screen { padding: 24px 20px 32px; }
+    .action-bar { padding: 12px 16px; }
+    .opt { padding: 5px 12px; }
+    .opt-icon { width: 22px; height: 22px; font-size: 11px; }
+  }
+
+  @media (min-width: 768px) {
+    .screen { padding: 48px 32px 56px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="funnel">
+
+  <!-- TOP BAR -->
+  <div class="top-bar" id="topBar">
+    <img src="TRUSystems__1_.png" alt="TRU Systems" class="logo-img" id="logoImg">
+    <div class="progress-mini" id="progressArea" style="visibility:hidden;">
+      <div class="progress-dots" id="progressDots"></div>
+      <span class="progress-pct" id="progressPct"></span>
+    </div>
+  </div>
+
+  <!-- ═══════ LANDING ═══════ -->
+  <div class="screen active" id="s-landing">
+    <div class="landing-badge">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      Free · 2 minutes
+    </div>
+
+    <h1 class="landing-h1">
+      Find out where you're <span class="highlight">leaving commission</span> on the table
+    </h1>
+
+    <p class="landing-sub">
+      Answer 7 quick questions about your sales process. Get a free personalized report showing exactly where AI can help you close more deals.
+    </p>
+
+    <div class="trust-row">
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M13.3 4.7l-7 7L3 8.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Personalized to your role
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M13.3 4.7l-7 7L3 8.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Actionable recommendations
+      </div>
+      <div class="trust-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M13.3 4.7l-7 7L3 8.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        No fluff, real tools
+      </div>
+    </div>
+
+    <button class="btn btn-main" onclick="goTo(1)" style="max-width:fit-content; padding:12px 32px; font-size:15px; flex:none; align-self:flex-start;">
+      Start My Free Audit →
+    </button>
+
+    </div>
+
+  <!-- ═══════ Q1: CRM (was Q2) ═══════ -->
+  <div class="screen" id="s-1">
+    <p class="q-eyebrow">Question 1 of 6</p>
+    <h2 class="q-title">What CRM do you use?</h2>
+    <div class="options">
+      <button class="opt" onclick="pick(1,this)"><div class="opt-icon">☁️</div><div class="opt-text"><span class="opt-label">Salesforce</span></div></button>
+      <button class="opt" onclick="pick(1,this)"><div class="opt-icon">🟠</div><div class="opt-text"><span class="opt-label">HubSpot</span></div></button>
+      <button class="opt" onclick="pick(1,this)"><div class="opt-icon">🔵</div><div class="opt-text"><span class="opt-label">Pipedrive</span></div></button>
+      <button class="opt" onclick="pick(1,this)"><div class="opt-icon">🟡</div><div class="opt-text"><span class="opt-label">Zoho CRM</span></div></button>
+      <button class="opt" onclick="pickOther(1)" id="otherCrmBtn"><div class="opt-icon">📋</div><div class="opt-text"><span class="opt-label">Other</span></div></button>
+    </div>
+    <div id="otherCrmInput" style="display:none; margin-top:12px;">
+      <input type="text" class="text-input" id="input-crm-other" placeholder="Type your CRM name (e.g., Close, Monday, Freshsales)">
+    </div>
+    <div class="micro-feedback" id="fb-1">
+      <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Perfect — we'll match tools to your CRM.
+    </div>
+  </div>
+
+  <!-- ═══════ Q2: TOOLS ═══════ -->
+  <div class="screen" id="s-2">
+    <p class="q-eyebrow">Question 2 of 6</p>
+    <h2 class="q-title">Besides your CRM, what other tools do you use daily for sales? <span style="font-weight:400;font-size:0.7em;color:var(--text-secondary);">(Select all that apply)</span></h2>
+    <div class="options">
+      <button class="opt" onclick="toggleMulti(2,this)"><div class="opt-icon">📧</div><div class="opt-text"><span class="opt-label">Gmail / Outlook</span></div></button>
+      <button class="opt" onclick="toggleMulti(2,this)"><div class="opt-icon">💬</div><div class="opt-text"><span class="opt-label">Slack / Teams</span></div></button>
+      <button class="opt" onclick="toggleMulti(2,this)"><div class="opt-icon">📊</div><div class="opt-text"><span class="opt-label">Google Sheets / Excel</span></div></button>
+      <button class="opt" onclick="toggleMulti(2,this)"><div class="opt-icon">📅</div><div class="opt-text"><span class="opt-label">Calendly / scheduling tool</span></div></button>
+      <button class="opt" onclick="toggleMulti(2,this)"><div class="opt-icon">🔍</div><div class="opt-text"><span class="opt-label">LinkedIn / Sales Navigator</span></div></button>
+      <button class="opt" onclick="toggleMulti(2,this)" id="otherToolsBtn"><div class="opt-icon">📋</div><div class="opt-text"><span class="opt-label">Other</span></div></button>
+    </div>
+    <div id="otherToolsInput" style="display:none; margin-top:12px;">
+      <input type="text" class="text-input" id="input-tools-other" placeholder="Type your other tools (e.g., Loom, Notion, Asana)" oninput="A.q2_other=this.value.trim();">
+    </div>
+    <div class="micro-feedback" id="fb-2">
+      <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      These are the tools we'll connect automations to.
+    </div>
+  </div>
+
+  <!-- ═══════ Q3: PROCESS (was Q4, improved) ═══════ -->
+  <div class="screen" id="s-3">
+    <p class="q-eyebrow">Question 3 of 6</p>
+    <h2 class="q-title">When a new lead comes in, what do you do manually before you actually talk to them?</h2>
+    <textarea class="text-input" id="input-3" placeholder="Describe your process here..."></textarea>
+    <div class="input-helper" style="margin-top:14px; line-height:1.7;">
+      <strong>Think about steps like:</strong><br>
+      • How do you find out about the lead? (notification, email, check CRM)<br>
+      • Do you copy any info between tools? (spreadsheet, Slack, etc.)<br>
+      • Do you send an intro email or text manually?<br>
+      • Do you research the lead before reaching out?<br>
+      • Do you log anything by hand?<br>
+      <span style="margin-top:6px;display:inline-block;">Don't worry about getting it perfect — even a few steps helps us find your biggest opportunities.</span>
+    </div>
+  </div>
+
+  <!-- ═══════ Q4: RESPONSE TIME (was Q5) ═══════ -->
+  <div class="screen" id="s-4">
+    <p class="q-eyebrow">Question 4 of 6</p>
+    <h2 class="q-title">How quickly do you typically respond to a new lead?</h2>
+    <div class="options">
+      <button class="opt" onclick="pick(4,this)"><div class="opt-icon">⚡</div><div class="opt-text"><span class="opt-label">Under 5 minutes</span></div></button>
+      <button class="opt" onclick="pick(4,this)"><div class="opt-icon">⏱️</div><div class="opt-text"><span class="opt-label">5–30 minutes</span></div></button>
+      <button class="opt" onclick="pick(4,this)"><div class="opt-icon">🕐</div><div class="opt-text"><span class="opt-label">30 min – few hours</span></div></button>
+      <button class="opt" onclick="pick(4,this)"><div class="opt-icon">📅</div><div class="opt-text"><span class="opt-label">Next day or later</span></div></button>
+    </div>
+    <div class="micro-feedback" id="fb-4">
+      <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Speed-to-lead is the #1 factor in close rates.
+    </div>
+  </div>
+
+  <!-- ═══════ Q5: ADMIN TASKS (was Q6, now multi-select) ═══════ -->
+  <div class="screen" id="s-5">
+    <p class="q-eyebrow">Question 5 of 6</p>
+    <h2 class="q-title">Which of these do you currently do by hand? <span style="font-weight:400;font-size:0.7em;color:var(--text-secondary);">(Select all that apply)</span></h2>
+    <div class="options">
+      <button class="opt" onclick="toggleMulti(5,this)"><div class="opt-icon">📝</div><div class="opt-text"><span class="opt-label">Updating the CRM after calls</span></div></button>
+      <button class="opt" onclick="toggleMulti(5,this)"><div class="opt-icon">📧</div><div class="opt-text"><span class="opt-label">Writing & sending follow-up emails</span></div></button>
+      <button class="opt" onclick="toggleMulti(5,this)"><div class="opt-icon">📊</div><div class="opt-text"><span class="opt-label">Logging activities or building reports</span></div></button>
+      <button class="opt" onclick="toggleMulti(5,this)"><div class="opt-icon">📋</div><div class="opt-text"><span class="opt-label">Moving data between tools (CRM → spreadsheet, etc.)</span></div></button>
+      <button class="opt" onclick="toggleMulti(5,this)"><div class="opt-icon">📄</div><div class="opt-text"><span class="opt-label">Creating proposals or contracts</span></div></button>
+      <button class="opt" onclick="toggleMulti(5,this)"><div class="opt-icon">🔍</div><div class="opt-text"><span class="opt-label">Researching leads before outreach</span></div></button>
+    </div>
+    <div class="micro-feedback" id="fb-5">
+      <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Every one of these can be automated. Your report will show you how.
+    </div>
+  </div>
+
+  <!-- ═══════ Q6: GOAL (was Q7) ═══════ -->
+  <div class="screen" id="s-6">
+    <p class="q-eyebrow">Question 6 of 6 — Last one!</p>
+    <h2 class="q-title">What matters most to you right now?</h2>
+    <div class="options">
+      <button class="opt" onclick="pick(6,this)"><div class="opt-icon">🏆</div><div class="opt-text"><span class="opt-label">Closing more deals</span></div></button>
+      <button class="opt" onclick="pick(6,this)"><div class="opt-icon">💵</div><div class="opt-text"><span class="opt-label">Earning more commission</span></div></button>
+      <button class="opt" onclick="pick(6,this)"><div class="opt-icon">⏰</div><div class="opt-text"><span class="opt-label">Less admin, more selling</span></div></button>
+      <button class="opt" onclick="pick(6,this)"><div class="opt-icon">🛡️</div><div class="opt-text"><span class="opt-label">Becoming indispensable</span><span class="opt-desc">So I don't get replaced</span></div></button>
+    </div>
+    <div class="micro-feedback" id="fb-6">
+      <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Your report will be built around this goal.
+    </div>
+  </div>
+
+  <!-- ═══════ EMAIL GATE ═══════ -->
+  <div class="screen" id="s-email">
+    <h2 class="q-title">Your report is ready 🎉<br>Where should we send it?</h2>
+    <div class="email-fields">
+      <label>First name</label>
+      <input type="text" class="text-input" id="userName" placeholder="Alex">
+      <label>Email</label>
+      <input type="email" class="text-input" id="userEmail" placeholder="you@company.com">
+    </div>
+    <p class="input-helper">We'll email you the full report. No spam, ever.</p>
+  </div>
+
+  <!-- ═══════ LOADING ═══════ -->
+  <div class="screen" id="s-loading">
+    <div class="loading-content">
+      <div class="loader-ring"></div>
+      <h2 class="q-title" style="text-align:center;">Analyzing your sales process...</h2>
+      <div class="loading-steps">
+        <div class="loading-step">
+          <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Mapping your pipeline
+        </div>
+        <div class="loading-step">
+          <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Identifying automation opportunities
+        </div>
+        <div class="loading-step">
+          <svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="2"/><path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Building your personalized report
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ RESULTS ═══════ -->
+  <div class="screen results-screen" id="s-results">
+    <div class="score-pill score-high" id="scorePill">High Opportunity</div>
+    <h2 class="results-h2" id="rHeadline"></h2>
+    <p class="results-intro" id="rIntro"></p>
+    <div id="rOpps"></div>
+    <div class="qw-box">
+      <p class="qw-label">⚡ Your quick win for today</p>
+      <p class="qw-text" id="rQuickWin"></p>
+    </div>
+    <div class="cta-box" id="ctaBox">
+      <h3 id="ctaH3" style="color:#fff;">Want help implementing this?</h3>
+      <p id="ctaP" style="color:#e2e8f0;">Join a private Skool community of salespeople who are actively implementing AI and automation in their roles. Get direct access to me, share wins with others doing the same thing, and book 1-on-1 done-with-you sessions when you're ready to build your first automation.</p>
+      <a href="[COMMUNITY_PLATFORM_URL]" class="cta-btn-primary">Start your free 7-day trial →</a>
+      <p class="cta-guarantee" style="margin-top:10px; font-size:13px; color:#94a3b8;">Then $29/mo. Cancel anytime before day 7 and pay nothing.</p>
+    </div>
+  </div>
+
+  <!-- ═══════ BOTTOM ACTION BAR ═══════ -->
+  <div class="action-bar" id="actionBar" style="display:none;">
+    <button class="btn btn-back" id="btnBack" onclick="goBack()">←</button>
+    <button class="btn btn-main" id="btnNext" onclick="goNext()" disabled>Continue</button>
+  </div>
+
+</div>
+
+<script>
+const A={};let cur=0;const TOTAL_Q=6;const textQs=[3];const multiQs=[2,5];
+(function(){const d=document.getElementById('progressDots');for(let i=1;i<=TOTAL_Q;i++){const dot=document.createElement('div');dot.className='progress-dot';dot.id='dot-'+i;d.appendChild(dot);}})();
+function updateProgress(){for(let i=1;i<=TOTAL_Q;i++){const dot=document.getElementById('dot-'+i);dot.className='progress-dot';if(i<cur)dot.classList.add('done');else if(i===cur)dot.classList.add('active');}document.getElementById('progressPct').textContent=Math.round((Math.min(cur,TOTAL_Q)/TOTAL_Q)*100)+'%';}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function goTo(step){cur=step;const pa=document.getElementById('progressArea'),ab=document.getElementById('actionBar');if(step===0){showScreen('s-landing');pa.style.visibility='hidden';ab.style.display='none';}else if(step>=1&&step<=TOTAL_Q){showScreen('s-'+step);pa.style.visibility='visible';ab.style.display='flex';updateProgress();updateNextBtn();document.getElementById('btnBack').style.display=step===1?'none':'';}else if(step===TOTAL_Q+1){showScreen('s-loading');pa.style.visibility='hidden';ab.style.display='none';submitAudit();}else if(step===TOTAL_Q+2){showScreen('s-results');pa.style.visibility='hidden';ab.style.display='none';}}
+function goNext(){if(cur>=1&&cur<=TOTAL_Q){if(textQs.includes(cur)){const val=document.getElementById('input-'+cur).value.trim();if(!val)return;A['q'+cur]=val;}if(cur===1&&A.q1==='_other_'){const ov=document.getElementById('input-crm-other').value.trim();if(!ov)return;A.q1=ov;}if(multiQs.includes(cur)){const sel=document.querySelectorAll('#s-'+cur+' .opt.selected');if(sel.length===0)return;A['q'+cur]=Array.from(sel).map(b=>b.querySelector('.opt-label').textContent.trim()).join(', ');if(cur===2&&A.q2_other){A.q2=A.q2.replace('Other','Other: '+A.q2_other);}}if(!A['q'+cur])return;if(cur<TOTAL_Q)goTo(cur+1);else goTo(TOTAL_Q+1);}}
+function goBack(){if(cur>1)goTo(cur-1);}
+function pick(q,btn){btn.parentElement.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));btn.classList.add('selected');A['q'+q]=btn.querySelector('.opt-label').textContent.trim();if(q===1)document.getElementById('otherCrmInput').style.display='none';const fb=document.getElementById('fb-'+q);if(fb)fb.classList.add('show');document.getElementById('btnNext').disabled=false;if(q<TOTAL_Q){setTimeout(()=>goNext(),600);}}
+function pickOther(q){const btn=document.getElementById('otherCrmBtn');btn.parentElement.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));btn.classList.add('selected');A['q'+q]='_other_';document.getElementById('otherCrmInput').style.display='block';document.getElementById('input-crm-other').focus();document.getElementById('btnNext').disabled=false;}
+function toggleMulti(q,btn){btn.classList.toggle('selected');const sel=document.querySelectorAll('#s-'+q+' .opt.selected');A['q'+q]=sel.length>0?'selected':'';document.getElementById('btnNext').disabled=sel.length===0;const fb=document.getElementById('fb-'+q);if(fb&&sel.length>0)fb.classList.add('show');if(q===2){const otherBtn=document.getElementById('otherToolsBtn');const otherInput=document.getElementById('otherToolsInput');if(otherBtn.classList.contains('selected')){otherInput.style.display='block';document.getElementById('input-tools-other').focus();}else{otherInput.style.display='none';}}}
+function updateNextBtn(){const btn=document.getElementById('btnNext');btn.textContent='Continue';if(cur===TOTAL_Q){btn.textContent='Get My Report \u2192';}if(textQs.includes(cur))btn.disabled=false;else if(multiQs.includes(cur)){const sel=document.querySelectorAll('#s-'+cur+' .opt.selected');btn.disabled=sel.length===0;}else btn.disabled=!A['q'+cur];}
+function submitAudit(){fetch('https://tru-systems-backend.onrender.com/generate-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answers:A})}).then(r=>r.json()).then(d=>{if(d.success)renderResults(d.report);else renderFallback();}).catch(()=>renderFallback());}
+function renderResults(r){const rt=A.q4||'';let lvl='high',txt='High Opportunity';if(rt.includes('Under 5')){lvl='low';txt='Already Ahead';}else if(rt.includes('5')){lvl='medium';txt='Real Opportunity';}document.getElementById('scorePill').textContent=txt;document.getElementById('scorePill').className='score-pill score-'+lvl;const g=A.q6||'',hl={'Closing more deals':"Here's how to close more deals — with less effort",'Earning more commission':"You're leaving real commission on the table",'Less admin, more selling':"Here's how to get hours back every week to sell",'Becoming indispensable':"Here's how to become irreplaceable on your team"};document.getElementById('rHeadline').textContent=hl[g]||"You're leaving deals on the table";document.getElementById('rIntro').textContent=r.intro||'';const ol=document.getElementById('rOpps');ol.innerHTML='';(r.opportunities||[]).forEach((o,i)=>{ol.innerHTML+='<div class="opp"><p class="opp-num">Opportunity '+(i+1)+'</p><p class="opp-title">'+(o.title||'')+'</p><p class="opp-desc">'+(o.description||'')+'</p><div class="opp-tags"><span class="opp-tag">🔧 '+(o.tool||'')+'</span><span class="opp-tag">📈 '+(o.impact||'')+'</span></div></div>';});document.getElementById('rQuickWin').textContent=r.quick_win||'';if(lvl==='high')document.getElementById('ctaH3').textContent="You've got serious automation potential";else if(lvl==='low')document.getElementById('ctaH3').textContent="You're ahead — let's take it further";goTo(TOTAL_Q+2);}
+function renderFallback(){var crm=A.q1||'your CRM';var tmpl='Settings > Templates';if(crm.includes('Salesforce'))tmpl='Setup > Email Templates';else if(crm.includes('HubSpot'))tmpl='Conversations > Templates';else if(crm.includes('Pipedrive'))tmpl='Settings > Email > Templates';else if(crm.includes('Zoho'))tmpl='Setup > Templates > Mail Templates';renderResults({intro:"Based on your answers, you're spending significant time on manual tasks in "+crm+" that could be running on autopilot. The good news? Every single thing you described can be automated with tools that connect directly to "+crm+" — and most of them have free tiers to get started.",opportunities:[{title:"Instant Lead Response via "+crm,description:"Right now, every minute between a lead coming in and you reaching out is a minute where that lead is cooling off — or worse, talking to your competitor. An automation can detect the moment a new lead enters "+crm+", instantly send a personalized email from your address, notify you on Slack or text, and log everything automatically. You don't touch anything. The lead hears from you in under 60 seconds instead of whenever you happen to check "+crm+".",tool:"Make.com connects directly to "+crm+" — create a free account at make.com and search their template library for '"+crm+" new lead notification'",impact:"Studies show responding within 5 minutes makes you 21x more likely to close than responding after 30 minutes. This one automation alone could be worth multiple extra deals per month."},{title:"Automatic "+crm+" Updates After Every Call",description:"If you're manually typing call notes into "+crm+" after every conversation, you're losing 30-60 minutes a day on pure data entry. That's 5+ hours a week you could be selling. An automation can record your calls, transcribe them using AI, extract the key details (next steps, objections, deal stage), and update your "+crm+" record automatically. By the time you hang up, "+crm+" is already updated.",tool:"Fireflies.ai or Otter.ai for transcription, connected to "+crm+" via Zapier or Make.com",impact:"Save 5-8 hours per week of manual CRM updates — that's essentially an extra full selling day every week"},{title:"Follow-Up Sequences That Never Forget",description:"Most deals don't die because of a bad pitch. They die because someone forgot to follow up on day 3, then day 7, then day 14. Manual follow-up is inconsistent by nature — you get busy, things slip. An automated sequence sends the right follow-up at the right time, personalized with the prospect's name and context, and stops automatically when they reply. You set it once and every lead gets perfect follow-up forever.",tool:crm+" has built-in sequence features you may already be paying for — check your "+crm+" settings for Sequences or Cadences",impact:"Consistent follow-up alone can increase close rates by 25-40% — that's real commission you're currently leaving on the table"}],quick_win:"Open "+crm+" right now and go to "+tmpl+". Create a saved template for your intro email — the one you send to every new lead. Write it once with placeholders for their name and company. From now on, instead of typing every intro email from scratch, you click one button and it's sent. That alone saves you 2-3 minutes per lead — which adds up to hours every week."});}
+document.querySelectorAll('.text-input').forEach(el=>{el.addEventListener('input',()=>updateNextBtn());});
+</script>
+</body>
+</html>
