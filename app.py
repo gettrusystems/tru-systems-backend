@@ -166,21 +166,17 @@ def send_report_email(email, name, report, answers):
         <div style="background:#f9fafb; border-radius:10px; padding:24px;
         margin:28px 0; text-align:center; border: 1px solid #e5e7eb;">
             <p style="font-size:17px; font-weight:600; color:#1a1a2e;
-            margin:0 0 8px;">Want help implementing this?</p>
+            margin:0 0 8px;">Want help actually building this?</p>
             <p style="font-size:14px; color:#6b7280; margin:0 0 16px;
-            line-height:1.5;">Join the TRU Systems community — get direct
-            access to me, ask your automation questions anytime, and book
-            1-on-1 sessions when you're ready to build.</p>
-            <a href="[COMMUNITY_PLATFORM_URL]" style="display:inline-block;
+            line-height:1.5;">Join The Irreplaceable Employee — a free
+            Skool community of salespeople who are all figuring out AI
+            and automation together. Winter's in there daily.</p>
+            <a href="https://www.skool.com/outperform-ai-for-sales-7517" style="display:inline-block;
             padding:14px 32px; background:#c8102e; color:white;
             text-decoration:none; border-radius:8px; font-size:15px;
-            font-weight:600;">Start your free 7-day trial</a>
+            font-weight:600;">Join the free community</a>
             <p style="font-size:13px; color:#6b7280; margin:10px 0 0;">
-            Then $29/mo. Cancel anytime before day 7 and pay nothing.</p>
-            <p style="font-size:12px; color:#6b7280; margin:12px 0 0;">
-            Or <a href="https://calendly.com/gettrusystems/30min"
-            style="color:#c8102e;">book a 1-on-1 session</a> for
-            hands-on implementation help.</p>
+            Free to join. No credit card. No catch.</p>
         </div>
 
         <p style="font-size:12px; color:#9ca3af; text-align:center;
@@ -207,7 +203,7 @@ YOUR QUICK WIN FOR TODAY:
 {report.get('closing', '')}
 
 Ready to implement? Join the TRU Systems community:
-[COMMUNITY_PLATFORM_URL]
+https://www.skool.com/outperform-ai-for-sales-7517
 
 Or book a 1-on-1 session: https://calendly.com/gettrusystems/30min
 
