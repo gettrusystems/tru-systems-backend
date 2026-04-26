@@ -219,11 +219,11 @@ def send_report_email(email, name, report, answers):
             <p style="font-size:17px; font-weight:600; color:#1a1a2e;
             margin:0 0 8px;">Want help actually building this?</p>
             <p style="font-size:14px; color:#6b7280; margin:0 0 16px;
-            line-height:1.5;">Book a free 15-minute call with Winter.
+            line-height:1.5;">Book a free 15-minute call with the team.
             We'll walk through your results together, pick the best
-            opportunity for your job, and he'll show you exactly how
-            he'd build it. No pitch, no pressure — just 15 minutes
-            of practical help.</p>
+            opportunity for your job, and show you exactly how to
+            build it. Just 15 minutes — and you'll leave with a
+            clear next step.</p>
             <a href="https://calendly.com/gettrusystems/30min" style="display:inline-block;
             padding:14px 32px; background:#c8102e; color:white;
             text-decoration:none; border-radius:8px; font-size:15px;
@@ -257,9 +257,9 @@ YOUR QUICK WIN FOR TODAY:
 {report.get('closing', '')}
 
 Want help actually building this? Book a free 15-minute call with
-Winter. We'll walk through your results, pick the best opportunity
-for your job, and he'll show you exactly how he'd build it.
-No pitch, no pressure — just 15 minutes of practical help.
+the team. We'll walk through your results, pick the best opportunity
+for your job, and show you exactly how to build it. Just 15
+minutes — and you'll leave with a clear next step.
 
 Book your free call: https://calendly.com/gettrusystems/30min
 
