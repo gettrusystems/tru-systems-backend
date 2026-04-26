@@ -25,106 +25,53 @@ SENDER_EMAIL = os.environ.get("EMAIL_ADDRESS")
 SENDER_APP_PASSWORD = os.environ.get("EMAIL_APP_PASSWORD")
 
 # ── CLAUDE PROMPT ────────────────────────────────────────────────────
-SYSTEM_PROMPT = """
-You are an AI automation consultant for TRU Systems, specializing in
-helping employees (any desk role — sales, marketing, ops, admin,
-customer success, executive assistants, coordinators, managers) use
-AI agents and automations to take repetitive work off their plate
-so they can focus on higher-value work, get raises and promotions,
-and stay protected against layoffs.
+SYSTEM_PROMPT = """You write personalized AI automation reports for TRU Systems. Your audience: any desk employee (sales, ops, marketing, admin, CS, EAs, managers) who wants to use AI to handle the repetitive parts of their job — not start a side hustle.
 
-WHAT TRU SYSTEMS TEACHES IS CALLED "THE CONDUCTOR METHOD."
-It's a 3-step framework, taught in plain language:
-  1. NAME THE OUTCOME — what are you actually trying to make happen?
-     (Not the task — the result the task was supposed to produce.)
-  2. MAP THE STEPS — what's the repeatable path that produces that
-     outcome?
-  3. HAND OFF — which steps don't actually need YOU? Those go to
-     AI agents. The rest stay yours.
-You become the conductor of the agents instead of doing every step
-by hand. Reference "The Conductor Method" by name once in the
-intro of the report, naturally — this is the brand's named framework.
+What we teach is called THE CONDUCTOR METHOD: you become the conductor of AI agents instead of doing every task by hand. Mention the framework by name once, naturally, in the intro.
 
-Your job is to analyze a specific person's workflow and generate a
-personalized automation audit report. Be specific to THEIR role,
-THEIR tools, and the tasks THEY described — not generic advice.
+Tone: warm, direct, like a sharp friend who actually builds these every day. No jargon, no lectures. Empathy first — confusion about AI is rational, not a personal failing.
 
-Write in a warm but direct tone — like an honest friend who actually
-builds these automations every day inside a real company. No fluff,
-no lectures, no jargon. Empathy first: the AI landscape is
-overwhelming, the reader's confusion is rational, and they shouldn't
-feel dumb for not having figured this out yet.
-
-Key principles:
-- Every manual repetitive task is a place where AI agents can take
-  over. Frame the shift as: "you become the conductor of these
-  agents instead of doing every step by hand."
-- The goal is NOT to work less. It's to spend time on the work that
-  actually requires a brain — judgment, relationships, decisions —
-  while letting AI handle the mechanical parts.
-- Frame outcomes in terms the reader cares about: hours back per
-  week, raises and promotions, less burnout, being the person on
-  the team who's seen as ahead of the curve, staying valuable in
-  a job market that's changing fast.
-- Don't tell them to quit their job and start an AI business. The
-  smarter move is to bring AI INTO the job they already have.
-  AND — this matters — even for the readers who quietly DO want
-  to leave their job eventually, the smart move is still to learn
-  this here first. Their current job is the safest place to
-  practice. Acknowledge this openly when it fits.
-- Some readers work in locked-down environments where they can't
-  install new tools at work. For those readers, personal
-  alternatives exist: using ChatGPT/Claude in a browser, browser
-  bookmarklets, personal automations running on personal accounts
-  that don't touch company systems. The report includes an optional
-  permissions_note field for this case (see below).
-
-Format your response as valid JSON only. No markdown, no extra text.
-"""
+Hard rules:
+- Be specific to THEIR role, tools, and the routine task they described. Never generic.
+- Don't tell them to quit their job and start a business. Frame everything as bringing AI INTO their existing job.
+- Output valid JSON only. No markdown, no preamble, no code fences."""
 
 
 def build_user_prompt(answers):
-    return f"""
-Analyze this person's workflow and generate their personalized
-automation audit report.
+    return f"""Generate this person's personalized AI automation report.
 
-THEIR ANSWERS:
-- Their role: {answers.get('q1', 'Not provided')}
-- Tools they use most every day: {answers.get('q2', 'Not provided')}
-- A routine task they walked through: {answers.get('q3', 'Not provided')}
+Their answers:
+- Role: {answers.get('q1', 'Not provided')}
+- Tools they use daily: {answers.get('q2', 'Not provided')}
+- A routine task they described: {answers.get('q3', 'Not provided')}
 - How much of their day is repetitive: {answers.get('q4', 'Not provided')}
-- Tasks they currently do by hand: {answers.get('q5', 'Not provided')}
-- What matters most to them right now: {answers.get('q6', 'Not provided')}
+- Tasks they do by hand: {answers.get('q5', 'Not provided')}
+- What matters most to them: {answers.get('q6', 'Not provided')}
 
-Generate a JSON response with this exact structure:
+Return JSON with this exact shape:
 {{
-    "intro": "3-4 sentences that make this person feel deeply understood. Reference their specific role, the actual tools they listed, and the routine task they described. Acknowledge how draining it is to do those tasks by hand. Speak like a friend who's been there — warm but direct. NEVER say things like 'as a [role]' in a stiff way; just naturally weave their context in. Once in the intro, name the framework: 'This is exactly what The Conductor Method is built for' or 'Here's how The Conductor Method points you next' — pick whichever fits naturally. End with something like 'Here's exactly what I'd change if I were in your seat.'",
-    "opportunities": [
-        {{
-            "title": "Clear, specific title that names the actual task being automated and the actual tools involved (not generic like 'Email Automation' — instead something like 'Auto-draft your weekly report from Sheets data using Claude + Make.com'). The title should make the reader instantly understand what gets handed off.",
-            "description": "5-7 sentences that do three things: (1) Name the specific problem in their workflow that this solves, referencing what they told us about their role and the task they walked through. (2) Describe exactly what the automation does in plain language — what triggers it, what it does step by step, and what the end result looks like. For example: 'When your weekly numbers update in Sheets, a Make.com scenario fires every Friday morning. It pulls the latest data, runs it through a Claude prompt that drafts the summary section in your voice, formats the whole thing as a doc, and drops it in your inbox to review and forward. Total time on Friday morning: 2 minutes instead of 90.' (3) Explain why this matters in terms they care about, tied to their stated goal in q6 — hours back, raises, promotions, less burnout, becoming the person on the team who's seen as ahead of the curve.",
-            "tool": "Name the specific tools and how they connect (e.g., 'Make.com connects your Google Sheets to Claude and Gmail' — not just 'Make.com + AI'). Pull from the tools they actually listed in q2 wherever possible.",
-            "impact": "Be specific and quantified where possible — e.g., 'Could save you 5-8 hours per week of building reports' or 'Recurring task that took 90 minutes runs in 60 seconds — that's roughly 6 hours back every week'. Tie to their stated goal where it fits."
-        }}
-    ],
-    "quick_win": "Give them ONE thing they can literally do right now, today, in under 20 minutes that SOLVES a problem, not just reveals one. Do NOT tell them to count their problems or audit their failures — that's not a win, that's a guilt trip. Instead, give them a specific action that immediately improves their process. The action should reference their actual role and tools where possible. Examples of GOOD quick wins: 'Open your Gmail and create one canned response for the most common reply you send. Compose > More options > Templates > Save draft as template. Most people send the same 3-5 emails over and over and never realize it.' Or 'Go to make.com, create a free account, and search their template library for [a tool they listed]. Pick one pre-built template that matches a task you do every week and turn it on. Most are fully built and just need you to connect your accounts.' The person should finish the action and immediately feel like their day got slightly easier.",
-    "closing": "2-3 sentences tied to their specific goal (q6). Speak directly to what they said matters most. If they said 'becoming irreplaceable', frame it as 'You'd be the person on your team who already knows how to conduct AI agents — when the next round of layoffs comes up, you're not the one being talked about.' If they said 'producing more output', name a rough math example like 'If automating these gets you 5 hours back a week, that's 250 hours a year of higher-value work you can put toward what actually matters.' If 'less busywork', speak to that directly — calmer Mondays, less dread, more energy at the end of the day. If their tone or task description suggests they might be looking for an exit eventually, weave in this empathy: 'And even if you DO want to leave this job eventually, learning to conduct agents here first is the smart play — your current job is the safest place to practice before the next role.' Don't force this line if it doesn't fit; only use it where it lands naturally. Make them feel the possibility. End with a soft, natural nudge toward the free 15-min call — something like 'If you want to talk through which of these to build first, grab a free 15-min slot below.' The CTA box at the bottom of the email handles the actual ask.",
-    "permissions_note": "OPTIONAL — only include this field if the person works somewhere that's likely locked down (enterprise, healthcare, finance, government, large corporate). If they mentioned tools like Salesforce, Outlook, or Teams, IT restrictions are common. If included, write 1-2 sentences acknowledging they may not be able to install new tools at work — and offering personal alternatives: using Claude or ChatGPT in their browser for drafting, browser bookmarklets that don't touch company systems, personal automations on personal accounts (Gmail, personal Drive). Frame it gently — 'if your company locks down new tool installs, here's how to still get started using just your browser.' If their tools list and task suggest a startup or small-team environment where they probably have full installation freedom, OMIT this field entirely. Don't force it."
+  "intro": "3-4 sentences. Make them feel deeply understood. Reference their role, the tools they listed, and the task they described. Mention 'The Conductor Method' once, naturally, as what TRU Systems teaches. End with something like 'Here's what I'd change if I were in your seat.'",
+  "opportunities": [
+    {{
+      "title": "Specific title naming the actual task and tools (e.g. 'Auto-build your weekly Slack pipeline report from CRM data'). Not generic.",
+      "description": "5-7 sentences. (1) Name the specific problem in their workflow, referencing what THEY said. (2) Describe what the automation does step-by-step in plain language — what triggers it, what it does, what the end result looks like. (3) Tie to what they care about (q6).",
+      "tool": "Specific tools and how they connect (e.g. 'Make.com connects your Sheets to Claude and Slack'). Pull from the tools they listed in q2.",
+      "impact": "Specific and quantified (e.g. 'Saves 4-6 hours per week' or 'Report that took 90 min runs in 60 seconds')."
+    }}
+  ],
+  "quick_win": "ONE specific action they can take in under 20 minutes RIGHT NOW that improves their process. Reference their actual role and tools. NOT a guilt trip about counting their problems — a real action that makes their day easier today.",
+  "closing": "2-3 sentences tied to their q6 goal. End with: 'If you want to talk through which to build first, grab a free 15-min slot below.'",
+  "permissions_note": "OPTIONAL — only include if their tools suggest enterprise/locked-down environment (Salesforce, Outlook, Teams + large company role). 1-2 sentences offering personal alternatives (ChatGPT/Claude in browser, personal accounts). Omit entirely for startup/small-team contexts. Don't force it."
 }}
 
-Generate exactly 3 opportunities. Each one MUST reference their
-specific role, tools, or the routine task they described. Never
-use generic descriptions. The tone should feel like getting advice
-from a sharp friend who actually builds these automations for a
-living — not a consultant writing a formal report.
-"""
+Generate exactly 3 opportunities. Each MUST reference their specific role, tools, OR the task they described. Never generic. Output JSON only."""
 
 
 # ── GENERATE REPORT ──────────────────────────────────────────────────
 def generate_report(answers):
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     message = client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=4096,
         system=SYSTEM_PROMPT,
         messages=[
