@@ -2,27 +2,21 @@
 TRU Systems — Workflow Automation Audit Backend (Production)
 ----------------------------------------------------------
 Flask server deployed on Render. Receives audit responses from
-employees in any desk role, generates a personalized report using
-Claude API, and emails it.
+employees in any desk role and generates a personalized report
+using the Claude API. Returns the report as JSON to the frontend.
 """
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import anthropic
-import smtplib
 import os
 import re
 import json
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-SENDER_EMAIL = os.environ.get("EMAIL_ADDRESS")
-SENDER_APP_PASSWORD = os.environ.get("EMAIL_APP_PASSWORD")
 
 # ── CLAUDE PROMPT ────────────────────────────────────────────────────
 SYSTEM_PROMPT = """You write personalized AI automation reports for TRU Systems. Your audience: any desk employee (sales, ops, marketing, admin, CS, EAs, managers) who wants to use AI to handle the repetitive parts of their job — not start a side hustle.
@@ -84,148 +78,6 @@ def generate_report(answers):
     return json.loads(raw)
 
 
-# ── SEND EMAIL ───────────────────────────────────────────────────────
-def send_report_email(email, name, report, answers):
-    today = datetime.now().strftime("%B %d, %Y")
-    subject = "Your Workflow Automation Audit — TRU Systems"
-
-    opps_html = ""
-    for i, opp in enumerate(report.get('opportunities', []), 1):
-        opps_html += f"""
-        <div style="background:#f9fafb; border-radius:10px; padding:20px;
-        margin-bottom:14px; border-left:3px solid #c8102e;">
-            <p style="font-size:11px; color:#c8102e; text-transform:uppercase;
-            letter-spacing:0.06em; margin:0 0 6px; font-weight:600;">
-            Opportunity {i}</p>
-            <p style="font-size:17px; font-weight:600; color:#1a1a2e;
-            margin:0 0 8px;">{opp.get('title', '')}</p>
-            <p style="font-size:14px; color:#4b5563; line-height:1.6;
-            margin:0 0 10px;">{opp.get('description', '')}</p>
-            <p style="font-size:13px; color:#c8102e; margin:0 0 4px;">
-            <strong>Tool:</strong> {opp.get('tool', '')}</p>
-            <p style="font-size:13px; color:#4b5563; margin:0;">
-            <strong>Impact:</strong> {opp.get('impact', '')}</p>
-        </div>
-        """
-
-    permissions_note = report.get('permissions_note', '').strip() if report.get('permissions_note') else ''
-    permissions_html = ""
-    if permissions_note:
-        permissions_html = f"""
-        <div style="background:#f0f9ff; border-radius:10px; padding:18px;
-        margin:20px 0; border: 1px solid #bae6fd;">
-            <p style="font-size:11px; font-weight:600; color:#0369a1;
-            text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px;">
-            If your company locks things down</p>
-            <p style="font-size:14px; color:#1a1a2e; line-height:1.6;
-            margin:0;">{permissions_note}</p>
-        </div>
-        """
-
-    html = f"""
-    <html>
-    <body style="font-family: Arial, sans-serif; max-width: 600px;
-    margin: auto; padding: 20px; color: #1a1a2e;">
-
-        <div style="border-bottom: 2px solid #c8102e; padding-bottom: 14px;
-        margin-bottom: 28px;">
-            <span style="font-size:22px; font-weight:700;
-            color:#c8102e;">TRU</span><span style="font-size:22px;
-            font-weight:600; color:#1a1a2e;">Systems</span>
-            <h1 style="font-size:20px; font-weight:600; margin:8px 0 0;
-            color:#1a1a2e;">Your Workflow Automation Audit</h1>
-            <p style="font-size:13px; color:#6b7280; margin:4px 0 0;">
-            {today} — {answers.get('q1', '')} using {answers.get('q2', '')}</p>
-        </div>
-
-        <p style="font-size:15px; line-height:1.7; color:#374151;">
-        Hi {name},</p>
-        <p style="font-size:15px; line-height:1.7; color:#374151;">
-        {report.get('intro', '')}</p>
-
-        <h2 style="font-size:16px; font-weight:600; color:#1a1a2e;
-        margin:28px 0 14px;">Your top automation opportunities</h2>
-        {opps_html}
-
-        <div style="background:#fef2f2; border-radius:10px; padding:20px;
-        margin:28px 0; border: 1px solid #fecaca;">
-            <p style="font-size:11px; font-weight:600; color:#c8102e;
-            text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px;">
-            Your quick win for today</p>
-            <p style="font-size:14px; color:#1a1a2e; line-height:1.6;
-            margin:0;">{report.get('quick_win', '')}</p>
-        </div>
-
-        {permissions_html}
-
-        <p style="font-size:15px; line-height:1.7; color:#374151;">
-        {report.get('closing', '')}</p>
-
-        <div style="background:#f9fafb; border-radius:10px; padding:24px;
-        margin:28px 0; text-align:center; border: 1px solid #e5e7eb;">
-            <p style="font-size:17px; font-weight:600; color:#1a1a2e;
-            margin:0 0 8px;">Want help actually building this?</p>
-            <p style="font-size:14px; color:#6b7280; margin:0 0 16px;
-            line-height:1.5;">Book a free 15-minute call with the team.
-            We'll walk through your results together, pick the best
-            opportunity for your job, and show you exactly how to
-            build it. Just 15 minutes — and you'll leave with a
-            clear next step.</p>
-            <a href="https://calendly.com/gettrusystems/30min" style="display:inline-block;
-            padding:14px 32px; background:#c8102e; color:white;
-            text-decoration:none; border-radius:8px; font-size:15px;
-            font-weight:600;">Book your free 15-min call</a>
-            <p style="font-size:13px; color:#6b7280; margin:10px 0 0;">
-            100% free. 15 minutes. No catch.</p>
-        </div>
-
-        <p style="font-size:12px; color:#9ca3af; text-align:center;
-        margin-top:28px;">
-        TRU Systems — gettrusystems@gmail.com</p>
-    </body>
-    </html>
-    """
-
-    plain = f"""
-Your Workflow Automation Audit — TRU Systems
-{today}
-
-Hi {name},
-
-{report.get('intro', '')}
-
-YOUR TOP AUTOMATION OPPORTUNITIES:
-{''.join([f"{i+1}. {opp.get('title', '')}" + chr(10) + f"{opp.get('description', '')}" + chr(10) + f"Tool: {opp.get('tool', '')}" + chr(10) + f"Impact: {opp.get('impact', '')}" + chr(10) + chr(10) for i, opp in enumerate(report.get('opportunities', []))])}
-
-YOUR QUICK WIN FOR TODAY:
-{report.get('quick_win', '')}
-{(chr(10) + chr(10) + 'IF YOUR COMPANY LOCKS THINGS DOWN:' + chr(10) + permissions_note) if permissions_note else ''}
-
-{report.get('closing', '')}
-
-Want help actually building this? Book a free 15-minute call with
-the team. We'll walk through your results, pick the best opportunity
-for your job, and show you exactly how to build it. Just 15
-minutes — and you'll leave with a clear next step.
-
-Book your free call: https://calendly.com/gettrusystems/30min
-
-Prefer email? gettrusystems@gmail.com
-
-— TRU Systems
-""".strip()
-
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = SENDER_EMAIL
-    msg["To"] = email
-    msg.attach(MIMEText(plain, "plain"))
-    msg.attach(MIMEText(html, "html"))
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(SENDER_EMAIL, SENDER_APP_PASSWORD)
-        server.sendmail(SENDER_EMAIL, email, msg.as_string())
-
 
 # ── ROUTES ───────────────────────────────────────────────────────────
 @app.route('/generate-report', methods=['POST'])
@@ -233,18 +85,13 @@ def generate_report_route():
     try:
         data = request.json
         answers = data.get('answers', {})
-        email = answers.get('email', '')
-        name = answers.get('name', 'there')
-
         report = generate_report(answers)
-        send_report_email(email, name, report, answers)
-
         return jsonify({
             "success": True,
             "report": report
         })
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error generating report: {e}")
         return jsonify({
             "success": False,
             "error": str(e)
