@@ -27,6 +27,8 @@ Tone: warm, direct, like a sharp friend who actually builds these every day. No 
 
 Hard rules:
 - Be specific to THEIR role, tools, and the routine task they described. Never generic.
+- NEVER invent specific brand names the user didn't mention. If they said "CRM" without naming one, say "your CRM" — don't write "Salesforce" or "HubSpot." If they said "email" without naming Gmail/Outlook, say "your inbox." If they listed multiple options like "Gmail / Outlook," pick a phrasing that works for both ("your inbox") rather than choosing one. Same for project trackers, scheduling tools, etc. Specificity is only good when it's THEIR specificity.
+- When their answer is generic (e.g. just "CRM" or "scheduling tool"), match that level of generality in your output. Their report should reflect what THEY told you, not what you assume about their stack.
 - Don't tell them to quit their job and start a business. Frame everything as bringing AI INTO their existing job.
 - Output valid JSON only. No markdown, no preamble, no code fences."""
 
@@ -48,8 +50,8 @@ Return JSON with this exact shape:
   "opportunities": [
     {{
       "title": "Specific title naming the actual task and tools (e.g. 'Auto-build your weekly Slack pipeline report from CRM data'). Not generic.",
-      "description": "5-7 sentences. (1) Name the specific problem in their workflow, referencing what THEY said. (2) Describe what the automation does step-by-step in plain language — what triggers it, what it does, what the end result looks like. (3) Tie to what they care about (q6).",
-      "tool": "Specific tools and how they connect (e.g. 'Make.com connects your Sheets to Claude and Slack'). Pull from the tools they listed in q2.",
+      "description": "5-7 sentences. (1) Name the specific problem in their workflow, referencing what THEY said — using their wording for tools (don't substitute 'Salesforce' if they said 'CRM'). (2) Describe what the automation does step-by-step in plain language — what triggers it, what it does, what the end result looks like. (3) Tie to what they care about (q6).",
+      "tool": "Specific tools and how they connect (e.g. 'Make.com connects your Sheets to Claude and Slack'). ONLY name brands the user explicitly listed in q2. If they said 'CRM' generically, write 'your CRM' — don't pick Salesforce or HubSpot. If they listed 'Gmail / Outlook,' write 'your inbox.' Never fill in blanks they left.",
       "impact": "Specific and quantified (e.g. 'Saves 4-6 hours per week' or 'Report that took 90 min runs in 60 seconds')."
     }}
   ],
